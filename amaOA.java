@@ -143,6 +143,25 @@ class amaOA{
 	// ===================================================================
 
 
+	// 20. Binary Search Tree Min Sum Root to Leaf 
+	// input: the root node of the tree
+	// return: the maximum sum of a path from root to leaf
+	// test:
+	// 		TreeNode root = dserializeLevel("1,2,-3,null,null,4,5");
+	// 		System.out.println(minSumRootLeaf(root));
+	public static int minSumRootLeaf(TreeNode root){
+		if(root == null) {
+			return 0;
+		}
+		if(root.left != null && root.right == null) {
+			return root.val + minSumRootLeaf(root.left);
+		} else if(root.left == null && root.right != null) {
+			return root.val + minSumRootLeaf(root.right);
+		}
+		return root.val + Math.min(minSumRootLeaf(root.left), minSumRootLeaf(root.right));
+	}
+	// ===================================================================
+
 
 	// 19. Shortest Job First waiting time: 
 	// input: the arr time and execution duration of each request sorted by arr time,

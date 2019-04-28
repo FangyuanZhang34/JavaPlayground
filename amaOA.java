@@ -138,9 +138,53 @@ class amaOA{
 
 	// ===================================================================
 	public static void main(String[] args) {
-		
+
 	}
 	// ===================================================================
+
+
+
+
+	// 27. max min path 
+	// input: a 2d matrix
+	// find the minimum in each path from top-left corner to bottom-right corner
+	// and then find the maximum among these minimums.
+	// return: a maximum number
+	// test:
+	// 		int[][] matrix = new int[][]{{8,4,7},{6,5,9}};
+	// 		System.out.println(maxMinPath(matrix));		
+	public static int maxMinPath(int[][] matrix){
+		if(matrix == null || matrix.length == 0) {
+			return 0;
+		}
+		int[] max = new int[]{Integer.MIN_VALUE};
+		List<Integer> mins = new ArrayList<>();
+		mins.add(Integer.MAX_VALUE);
+		dfs(matrix, mins, max, 0, 0);
+		return max[0];
+	}
+	private static void dfs(int[][] matrix, List<Integer> mins, int[] max, int i, int j) {
+		int nr = matrix.length, nc = matrix[0].length;
+		// out of bound, update max, return
+		if(i >= nr || j >= nc) {
+			return;
+		}
+		// update mins with current matrix[i][j]
+		mins.add(Math.min(mins.get(mins.size() - 1), matrix[i][j]));
+		// once reach the right-bottom corner, update the max, but do not return
+		if(i == nr - 1 && j == nc - 1) {
+			max[0] = Math.max(max[0], mins.get(mins.size() - 1));
+		}
+		// go to next step
+		dfs(matrix, mins, max, i, j + 1);
+		dfs(matrix, mins, max, i + 1, j);
+		// backtrack
+		mins.remove(mins.size() - 1);
+	}
+	// ===================================================================
+
+
+
 
 
 	// 20. Binary Search Tree Min Sum Root to Leaf 
@@ -938,7 +982,7 @@ class amaOA{
 				}
 			}
 		}
-		return (start == end) ? "OOXX" : s.substring(start, end + 1);
+		return (start == end) ? "WTF" : s.substring(start, end + 1);
 	}
 	// 5. =======================================
 

@@ -144,6 +144,97 @@ class amaOA{
 
 
 
+	// 34. k closest points to origin (result no need in order) 
+	// https://leetcode.com/problems/k-closest-points-to-origin/
+	public static int[][] kClosest(int[][] points, int K) {
+        int kClosest = 0;
+        int[] dist = new int[points.length];
+        for(int i = 0; i < points.length; i++) {
+            dist[i] = getDist(points, i);
+        }
+        Arrays.sort(dist);
+        kClosest = dist[K - 1];
+        int[][] res = new int[K][2];
+        int ind = 0;
+        for(int i = 0; i < points.length; i++) {
+            if(getDist(points, i) <= kClosest) {
+                res[ind++] = points[i];
+            }
+        }
+        return res;
+    }
+    private static int getDist(int[][] points, int i) {
+        return points[i][0] * points[i][0] + points[i][1] * points[i][1];
+    }
+
+    // 34. k closest points to origin (pq : result in order)
+	public static List<List<Integer>> kClosest(List<List<Integer>> points, int k) {
+		if(points == null || points.size() == 0 || k == 0) {
+			return new ArrayList<>();
+		}
+		PriorityQueue<List<Integer>> maxHeap = new PriorityQueue<>(k, (p1, p2) -> {
+			return (int)(getDist(p2) - getDist(p1));
+		});
+		for(int i = 0; i < points.size(); i++) {
+			List<Integer> point = points.get(i);
+			if(i < k) {
+				maxHeap.offer(point);
+			} else {
+				if(getDist(point) <= getDist(maxHeap.peek())) {
+					maxHeap.poll();
+					maxHeap.offer(point);
+				}
+			}
+		}
+		List<List<Integer>> res = new ArrayList<>(maxHeap);
+		return res;
+	}
+	private static double getDist(List<Integer> point) {
+		return point.get(0) * point.get(0) + point.get(1) * point.get(1);
+	}
+	// ===================================================================
+
+
+
+
+	// 33. partition labels  https://leetcode.com/problems/partition-labels/submissions/
+	// input:	a String needed partition
+	//			partition the string into as many parts as possible 
+	//			so that each letter appears in at most one partition
+	// return:	list of size of paritions
+	// greedy--
+	// choose the smallest left-justified partition
+    // for example, the string 'abadd'
+    // for the first label 'a', the first partition should include 
+    //     its first occurrance and last occurrance
+    // So for each label, we extend the current partition,
+    //     until we find the right most last occurrance of the letter
+    //     we do the partition then.
+    public static List<Integer> partitionLabels(String S) {
+        List<Integer> res = new ArrayList<>();
+        if(S == null || S.length() == 0) {
+            return res;
+        }
+        int[] lastOcc = new int[26];
+        for(int i = 0; i < S.length(); i++) {
+            char c = S.charAt(i);
+            lastOcc[c - 'a'] = i;
+        }
+        int start = 0, end = 0;
+        for(int i = 0; i < S.length(); i++) {
+            char c = S.charAt(i);
+            end = Math.max(end, lastOcc[c - 'a']);
+            if(i == end) {
+                res.add(end - start + 1);
+                end++;
+                start = end;
+            }
+        }
+        return res;
+    }
+	// ===================================================================
+
+
 
 	// 32. log sort https://leetcode.com/problems/reorder-log-files/
 	// test: 
@@ -169,6 +260,9 @@ class amaOA{
         });
         return logs;
     }
+	// ===================================================================
+
+
 
 	// 22. maze
 	// input: 	a maze 2d matrix
@@ -910,6 +1004,87 @@ class amaOA{
 			map.put(nums[i], map.getOrDefault(nums[i], 0) + 1);
 		}
 		return res;
+	}
+
+	// 36. twoSumMaxWeight
+	// input: 	an array weights of all packages, a target weight
+	// return: 	an array of two indices that the weights add up target,
+	// 			if there are multiple answers, return the one with largest package weight
+	// test:
+	// 		int[] weights = {1,2,4,3,2,1,3,0};
+	// 		int target = 4;
+	// 		System.out.println(Arrays.toString(twoSumMaxWeight(weights, target)));
+	// return: [2, 7]
+	public static int[] twoSumMaxWeight(int[] weights, int target) {
+		// find all pairs of indices
+		// return the pair with largest item weight
+		if(weights == null || weights.length == 0) {
+			return new int[]{-1,-1};
+		}
+		Map<Integer, List<Integer>> map = new HashMap<>();
+		List<List<Integer>> res = new ArrayList<>();
+		for(int i = 0; i < weights.length; i++) {
+			int complement = target - weights[i];
+			// if contains complement
+			// find a pair
+			if(map.containsKey(complement)) {
+				List<Integer> comList = map.get(complement);
+				for(int j = 0; j < comList.size(); j++) {
+					int comInd = comList.get(j);
+					List<Integer> pair = new ArrayList<>();
+					pair.add(comInd);
+					pair.add(i);
+					res.add(pair);
+				}
+			}
+			// update item key's list
+			if(!map.containsKey(weights[i])) {
+				List<Integer> newList = new ArrayList<>();
+				map.put(weights[i], newList);
+			}
+			map.get(weights[i]).add(i);
+		}
+		// find the result pair with largest item weight
+		int[] result = new int[]{-1, -1};
+		int maxItemWeight = 0;
+		for(int i = 0; i < res.size(); i++) {
+			List<Integer> pair = res.get(i);
+			int item1Ind = pair.get(0), item2Ind = pair.get(1);
+			if(weights[item1Ind] > maxItemWeight || weights[item2Ind] > maxItemWeight) {
+				result[0] = item1Ind;
+				result[1] = item2Ind;
+			}
+		}
+		return result;
+ 	}
+
+
+	// 35. memory consumption / flight 无人机 其实不是two sum的解法，这个是两个list 但是题目目的上像
+	// input: 	two lists : jobs memory comsumptions / flight departure and return duration ;
+	//			int : a memory limit / time limit
+	// return:	max memory comsumption / flight duration that is not out of limit
+	// test:
+	// 		int[][] list1 = new int[][]{{1,100}, {2,200}, {3,500}};
+	// 		int[][] list2 = new int[][]{{1,200}, {2,300}, {3,900}};
+	// 		System.out.println(Arrays.toString(twoSumMax(list1, list2, 1000)));
+	// 直接暴力解
+	public static int[] twoSumMax(int[][] list1, int[][] list2, int limit) {
+		if(list1 == null || list2 == null || list1.length == 0 || list2.length == 0) {
+			return new int[]{-1,-1};
+		}
+		int maxSum = 0;
+		int id1 = -1, id2 = -1;
+		for(int i = 0; i < list1.length; i++) {
+			for(int j = 0; j < list2.length; j++) {
+				int sum = list1[i][1] + list2[j][1];
+				if(sum < limit && sum > maxSum) {
+					maxSum = sum;
+					id1 = list1[i][0];
+					id2 = list2[j][0];
+				}
+			}
+		}
+		return new int[]{id1, id2};
 	}
 
 

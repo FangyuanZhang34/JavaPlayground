@@ -138,7 +138,88 @@ class amaOA{
 
 	// ===================================================================
 	public static void main(String[] args) {
+		
+	}
+	// ===================================================================
 
+
+
+
+	// 32. log sort https://leetcode.com/problems/reorder-log-files/
+	// test: 
+	// 		String[] logs = {"a1 9 2 3 1", "g1 act car", "zo4 4 7", "ab1 off key dog", "a8 act zoo"};
+	// 		System.out.println(Arrays.toString(reorderLogFiles(logs)));
+	public static String[] reorderLogFiles(String[] logs) {
+        if(logs == null || logs.length == 0) {
+            return logs;
+        }
+        Arrays.sort(logs, (log1, log2) -> {
+            String[] split1 = log1.split(" ", 2);
+            String[] split2 = log2.split(" ", 2);
+            boolean isLetter1 = Character.isLetter(split1[1].charAt(0));
+            boolean isLetter2 = Character.isLetter(split2[1].charAt(0));
+            if(isLetter1 && isLetter2) {
+                int cmp = split1[1].compareTo(split2[1]);
+                if(cmp == 0) {
+                    return split1[0].compareTo(split2[0]);
+                }
+                return cmp;
+            }
+            return isLetter1 ? -1 : (isLetter2) ? 1 : 0;
+        });
+        return logs;
+    }
+
+	// 22. maze
+	// input: 	a maze 2d matrix
+	// 			start from top-left corner to "9"
+	// return: 	minimum steps
+	// test:
+	// 		int[][] maze1 = new int[][]{{1,0,0},{1,1,1},{1,9,1}};
+	// 		int[][] maze2 = new int[][]{{9,0,0},{1,1,1},{1,0,1}};
+	// 		System.out.println(minSteps(maze1));
+	public static int minSteps(int[][] maze) {
+		if(maze == null || maze.length == 0 || maze[0].length == 0) {
+			return -1;
+		}
+		int nr = maze.length, nc = maze[0].length;
+		int[][] dirs = new int[][]{{0,1},{0,-1},{1,0},{-1,0}};
+		Set<List<Integer>> visited = new HashSet<>();
+		Queue<List<Integer>> level = new LinkedList<>();
+		List<Integer> origin = createPos(0, 0);
+		level.offer(origin);
+		visited.add(origin);
+		int step = -1;
+		while(!level.isEmpty()) {
+			int size = level.size();
+			step++;
+			for(int i = 0; i < size; i++) {
+				// poll one position from this level
+				List<Integer> pos = level.poll();
+				int row = pos.get(0), col = pos.get(1);
+				if(maze[row][col] == 9) {
+					return step;
+				}
+				// add all the neighbors into the level queue
+				for(int[] dir : dirs) {
+					int newRow = row + dir[0], newCol = col + dir[1];
+					if(newRow < nr && newRow >= 0 && newCol < nc && newCol >= 0 && maze[newRow][newCol] != 0) {
+						List<Integer> newList = createPos(newRow, newCol);
+						if(!visited.contains(newList)) {
+							level.offer(newList);
+							visited.add(newList);
+						}
+					}
+				}
+			}
+		}
+		return -1;
+	}
+	private static List<Integer> createPos(int i, int j) {
+		List<Integer> list = new ArrayList<>();
+		list.add(i);
+		list.add(j);
+		return list;
 	}
 	// ===================================================================
 
@@ -891,6 +972,8 @@ class amaOA{
 	// 			printList(reverseHalfList(createList(arr)));
 	//			1 2 3 4 5 6 7 8 9 10
     // 			1 2 3 4 5 10 9 8 7 6
+    //
+    // reverse from m to n : https://leetcode.com/problems/reverse-linked-list-ii/
 	public static ListNode reverseHalfList(ListNode head) {
 		// 1. corner case
 		if(head == null || head.next == null) {
@@ -991,6 +1074,7 @@ class amaOA{
 	// o.w. return num of pairs
 	// test: 	String s = "(())()";
 	// 			System.out.println(validParen(s));
+	// also can use a variable to count "(" instead of maintaining a stack
 	public static int validParen(String s) {
 		if(s == null) {
 			return -1;

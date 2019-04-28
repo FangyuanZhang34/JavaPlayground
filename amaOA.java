@@ -138,9 +138,157 @@ class amaOA{
 
 	// ===================================================================
 	public static void main(String[] args) {
-		
+		Integer[][] matrix = {{1,2,1},{1,3,2},{2,3,3},{2,4,2},{3,4,3}};
+		List<List<Integer>> roads = new ArrayList<>();
+		for(int i = 0; i < matrix.length; i++) {
+			List<Integer> road = Arrays.asList(matrix[i]);
+			roads.add(road);
+		}
+		System.out.println(roads);
+		System.out.println(minCostMST(roads));
+  
 	}
 	// ===================================================================
+
+
+
+	// 37. Construct an MST 
+	// input: list of all the roads and its costs List<List<Integer>> [[xxx],[],[],[],[],[],[],[]]
+	// return: a list of all the roads(with sorted cost) of a min-cost MST List<List<Integer>> [[xxx],[],[]]
+	public static List<List<Integer>> minCostMST(List<List<Integer>> roads) {
+		class Unionfind {
+			int[] arr;
+			Unionfind(int size) {
+				arr = new int[size];
+				Arrays.fill(arr, -1);
+			}
+			public int root(int i) {
+				while(arr[i] != -1) {
+					i = arr[i];
+				} 
+				return i;
+			}
+			public boolean find(int i, int j) {
+				return root(i) == root(j);
+			}
+			// assign i to j's subset
+			//		assign i's root's root as j's root
+			public void union(int i, int j) {
+				int rooti = root(i);
+				int rootj = root(j);
+				arr[rooti] = rootj;
+			}
+		}
+		if(roads == null || roads.size() == 0) {
+			return new ArrayList<>();
+		}
+		// map from all cityId -> unionfind ind & to avoid road duplication
+		Map<Integer, Integer> cityMap = new HashMap<>();
+		// poll min-cost road from minHeap each round
+		PriorityQueue<List<Integer>> minHeap = new PriorityQueue<List<Integer>>(roads.size(), (road1, road2) -> {
+			return road1.get(2) - road2.get(2);
+		});
+		// offer all the unique cities and roads into the cityMap and minHeap
+		int ind = 0;
+		for(List<Integer> road : roads) {
+			Integer city1 = road.get(0);
+			Integer city2 = road.get(1);
+			if(!cityMap.containsKey(city1)) {
+				cityMap.put(city1, ind++);
+			}
+			if(!cityMap.containsKey(city2)) {
+				cityMap.put(city2, ind++);
+			}
+			minHeap.offer(road);
+		}
+		int cityN = cityMap.size();
+
+		// create a new Unionfind class to expand an MST
+		Unionfind uf = new Unionfind(cityMap.size());
+		List<List<Integer>> mst = new ArrayList<>();
+
+		// check each road from the minHeap in the order of cost
+		// stop until we have checked all the roads(minheap empty) / we have built a MST(mst.size() == cityN - 1)
+		while(!minHeap.isEmpty() && mst.size() < cityN - 1) {
+			List<Integer> minRoad = minHeap.poll();
+			Integer city1 = minRoad.get(0), city2 = minRoad.get(1);
+			// city 1, 2 not connected, union the 1, 2 cities, add road into mst 
+			if(!uf.find(cityMap.get(city1), cityMap.get(city2))) {
+				uf.union(cityMap.get(city1), cityMap.get(city2));
+				mst.add(minRoad);
+			}
+		}
+		// cannot build a spanning tree
+		if(mst.size() < cityN - 1) {
+			return new ArrayList<>();
+		}
+		// sort the roads in MST by cost
+		Collections.sort(mst, (List<Integer> road1, List<Integer> road2) -> {
+			// 1. compare cost
+			int cmp = road1.get(2) - road2.get(2);
+			if(cmp == 0) {
+				// 2. compare city1
+				int cmp1 = road1.get(0) - road2.get(0);
+				if(cmp1 == 0) {
+					// 3. compare city2
+					return road1.get(1) - road2.get(1);
+				}
+				return cmp1;
+			}
+			return cmp;
+		});
+		return mst;
+	}
+
+	// 36. 零件组装 / merge subfiles / merge stone min cost存疑，lc1000通不过 https://leetcode.com/problems/minimum-cost-to-merge-stones/
+	// input: 	an array of costs of merge each pile of stone; 
+	//			K exact number of piles to merge in each round
+	// return: 	the minimum cost to merge together all piles of stones
+	//			return -1 if not possible to merge exact K piles each round
+	// maintain a total coast variable; use a pq minheap to store all the piles, 
+	//  	each round poll K least-cost piles to merge,
+	// 		offer the new merged pile with new cost back to the pq again
+	//  	until there is only one pile in the pq, return the total
+	public static int mergeStones(int[] stones, int K) {
+        // check if it is possible or not
+        if(stones == null || stones.length == 0) {
+            return -1;
+        }
+        int size = stones.length;
+        while(size > K) {
+            size = size - K + 1;
+        }
+        if(size != K) {
+            return -1;
+        }
+        // it is possible
+        // use a minHeap, each time poll K itmes; add cost; offer into again
+        // maintain a total cost
+        int cost = 0;
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+        // offer all piles into the pq 
+        for(int i = 0; i < stones.length; i++) {
+            minHeap.offer(stones[i]);
+        }
+        while(!minHeap.isEmpty()) {
+            // only one pile left 
+            if(minHeap.size() == 1) {
+                break;
+            }
+            // each level, poll K items
+            int sum = 0;
+            for(int i = 0; i < K; i++) {
+                int num = minHeap.poll();
+                sum += num;
+            }
+            // offer back the merged stone
+            minHeap.offer(sum);
+            cost += sum;
+        }
+        return cost;
+    }
+	// ===================================================================
+
 
 
 
@@ -172,7 +320,7 @@ class amaOA{
 		if(points == null || points.size() == 0 || k == 0) {
 			return new ArrayList<>();
 		}
-		PriorityQueue<List<Integer>> maxHeap = new PriorityQueue<>(k, (p1, p2) -> {
+		PriorityQueue<List<Integer>> maxHeap = new PriorityQueue<List<Integer>>(k, (p1, p2) -> {
 			return (int)(getDist(p2) - getDist(p1));
 		});
 		for(int i = 0; i < points.size(); i++) {

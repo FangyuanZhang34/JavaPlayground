@@ -35,16 +35,16 @@ class Practice{
 	// threaded binary tree(tree with right null pointer pointed to inorder successor)
 	// https://www.geeksforgeeks.org/convert-binary-tree-threaded-binary-tree-set-2-efficient/
 	// test:
-	// ThreadedTree threadedTree = new ThreadedTree();
-	// ThreadedTree.TTNode root = threadedTree.new TTNode(1);
-	// root.left = threadedTree.new TTNode(2);
-	// root.right = threadedTree.new TTNode(3);
-	// root.left.left = threadedTree.new TTNode(4);
-	// root.left.right = threadedTree.new TTNode(5);
-	// root.right.left = threadedTree.new TTNode(6);
-	// root.right.right = threadedTree.new TTNode(7);	
-	// threadedTree.createThreaded(root);
-	// threadedTree.inOrder(root);
+	// 		ThreadedTree threadedTree = new ThreadedTree();
+	// 		ThreadedTree.TTNode root = threadedTree.new TTNode(1);
+	// 		root.left = threadedTree.new TTNode(2);
+	// 		root.right = threadedTree.new TTNode(3);
+	// 		root.left.left = threadedTree.new TTNode(4);
+	// 		root.left.right = threadedTree.new TTNode(5);
+	// 		root.right.left = threadedTree.new TTNode(6);
+	// 		root.right.right = threadedTree.new TTNode(7);	
+	// 		threadedTree.createThreaded(root);
+	// 		threadedTree.inOrder(root);
 	static class ThreadedTree{
 		class TTNode{
 			int key;

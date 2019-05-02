@@ -32,6 +32,67 @@ class amaOA{
 		}
 	}
 
+	static class ThreadedTree{
+		class TTNode{
+			int key;
+			TTNode left, right;
+			boolean isThreaded;
+			public TTNode(int key) {
+				this.key = key;
+				left = null;
+				right = null;
+			}
+		}
+		public void inOrder(TTNode root) {
+			if(root == null) {
+				return;
+			}
+			TTNode cur = leftMost(root);
+			while(cur != null) {
+				System.out.print(cur.key + " ");
+				if(cur.isThreaded) {
+					cur = cur.right;
+				} else {
+					cur = leftMost(cur.right);
+				}
+			}
+			System.out.print("\n");
+		}
+		private TTNode leftMost(TTNode root) {
+			while(root != null && root.left != null) {
+				root = root.left;
+			}
+			return root;
+		}
+		// return the right most node in the tree
+		// and create all the threads in this tree
+		public TTNode createThreaded(TTNode root) {
+			//base cases:
+			if(root == null) {
+				return root;
+			}
+			if(root.left == null && root.right == null) {
+				return root;
+			}
+			// this round:
+			// find predecessor of some node
+			// left subtree
+			if(root.left != null) {
+				TTNode leftRightMost = createThreaded(root.left);
+				leftRightMost.right = root;
+				leftRightMost.isThreaded = true;
+			}
+			// return to upper level:
+			if(root.right != null) {
+				return createThreaded(root.right);
+			} else {
+				return root;
+			}
+
+		}
+		
+	}
+
 	// =====Tree==============================================================
 	// test:
 	// 		String str1 = "1,2,3,null,null,4,5,null,null";
@@ -134,526 +195,24 @@ class amaOA{
 		return head;
 	}
 
-	public static List<List<Integer>> createListListInt(Integer[][] matrix) {
-		List<List<Integer>> roads = new ArrayList<>();
-		for(int i = 0; i < matrix.length; i++) {
-			List<Integer> road = Arrays.asList(matrix[i]);
-			roads.add(road);
-		}
-		return roads;
-	}
-
 
 
 	// ===================================================================
 	public static void main(String[] args) {
-		
+		ThreadedTree threadedTree = new ThreadedTree();
+		ThreadedTree.TTNode root = threadedTree.new TTNode(1);
+		root.left = threadedTree.new TTNode(2);
+		root.right = threadedTree.new TTNode(3);
+		root.left.left = threadedTree.new TTNode(4);
+		root.left.right = threadedTree.new TTNode(5);
+		root.right.left = threadedTree.new TTNode(6);
+		root.right.right = threadedTree.new TTNode(7);	
+		threadedTree.createThreaded(root);
+		threadedTree.inOrder(root);
+
 	}
 	// ===================================================================
 
-
-
-	// 37. build new roads with minimum cost (MST)
-	// input: 	two arraylist with old roads and new roads, and an integer of total number of cities
-	// print: 	list of new roads we have to build
-	// test:
-	// 		Integer[][] oldR = {{1,4},{4,5},{2,3}};
-	// 		Integer[][] newR = {{1,2,5},{1,3,10},{1,6,2},{5,6,5}};
-	// 		List<List<Integer>> oldRoads = createListListInt(oldR);	
-	// 		List<List<Integer>> newRoads = createListListInt(newR);			
-	// 		minCostNewMST(oldRoads,newRoads,6);
-	public static void minCostNewMST(List<List<Integer>> oldRoads, List<List<Integer>> newRoads, int numCities) {
-		// map all the old cities to unionfind indices
-		// build old roads in Unionfind object
-		// map all the new citites to unionfind indices
-		// store all new roads into pq
-		// check and build new roads in Unionfind object, add to res List
-		class Unionfind {
-			int[] arr;
-			int size;
-			Unionfind(int size) {
-				arr = new int[size];
-				Arrays.fill(arr, -1);
-				size = 0;
-			}
-			public int root(int i) {
-				while(arr[i] != -1) {
-					i = arr[i];
-				} 
-				return i;
-			}
-			public boolean find(int i, int j) {
-				return root(i) == root(j);
-			}
-			// assign i to j's subset
-			//		assign i's root's root as j's root
-			public void union(int i, int j) {
-				int rooti = root(i);
-				int rootj = root(j);
-				arr[rooti] = rootj;
-				size++;
-			}
-		}
-		if(oldRoads == null || newRoads == null) {
-			System.out.println("null input");
-			return;
-		}
-
-		// all old cites into map
-		int ind = 0;
-		Map<Integer, Integer> cityMap = new HashMap<>();
-		// build all old roads using UF
-		Unionfind uf = new Unionfind(numCities);
-		for(List<Integer> road : oldRoads) {
-			Integer city1 = road.get(0);
-			Integer city2 = road.get(1);
-			// put cities into map
-			if(!cityMap.containsKey(city1)) {
-				cityMap.put(city1, ind++);
-			}
-			if(!cityMap.containsKey(city2)) {
-				cityMap.put(city2, ind++);
-			}
-			// build roads in UF
-			if(!uf.find(cityMap.get(city1), cityMap.get(city2))) {
-				uf.union(cityMap.get(city1), cityMap.get(city2));
-			}
-		}
-		int oldRoadsNum = uf.size;
-		PriorityQueue<List<Integer>> minHeap = new PriorityQueue<List<Integer>>(newRoads.size(),(road1, road2) -> {
-			return road1.get(2) - road2.get(2);
-		});
-		// store all the new citites into map
-		// store all new roads into pq
-		for(List<Integer> road : newRoads) {
-			Integer city1 = road.get(0);
-			Integer city2 = road.get(1);
-			// put cities into map
-			if(!cityMap.containsKey(city1)) {
-				cityMap.put(city1, ind++);
-			}
-			if(!cityMap.containsKey(city2)) {
-				cityMap.put(city2, ind++);
-			}
-			// into pq
-			minHeap.offer(road);
-		}
-		// 结果：res ArrayList
-		List<List<Integer>> res = new ArrayList<>();
-		// use pq to poll min-cost road each round and check if it is needed in a spanning tree
-		while(!minHeap.isEmpty() && oldRoadsNum + res.size() < numCities - 1) {
-			List<Integer> polledRoad = minHeap.poll();
-			Integer city1 = polledRoad.get(0);
-			Integer city2 = polledRoad.get(1);
-			// build roads in UF
-			if(!uf.find(cityMap.get(city1), cityMap.get(city2))) {
-				uf.union(cityMap.get(city1), cityMap.get(city2));
-				res.add(polledRoad);
-			}
-		}
-		// can not build a spanning tree
-		if(oldRoadsNum + res.size() < numCities - 1) {
-			System.out.println("cannot!");
-			return;
-		}
-		for(List<Integer> road : res) {
-			System.out.println(road.toString());
-		}
-
-	}
-
-
-
-	// 37. Construct an MST 
-	// input: list of all the roads and its costs List<List<Integer>> [[xxx],[],[],[],[],[],[],[]]
-	// return: a list of all the roads(with sorted cost) of a min-cost MST List<List<Integer>> [[xxx],[],[]]
-	// test:
-	// 		Integer[][] matrix = {{1,2,1},{1,3,2},{2,3,3},{2,4,2},{3,4,3}};
-	// 		List<List<Integer>> roads = createListListInt(matrix);
-	// 		System.out.println(roads);
-	// 		System.out.println(minCostMST(roads));
-	// res:	[[1, 2, 1], [1, 3, 2], [2, 3, 3], [2, 4, 2], [3, 4, 3]]
-	// 		[[1, 2, 1], [1, 3, 2], [2, 4, 2]]
-	// cityMap : map all the cities to unionfind indices
-	// Unionfind : store the graph, build edges, used to check if it is a spanning tree
-	// PriorityQueue : poll min-cost new roads
-	// mst List : result all the edges we build, 只用做返回值记录，不参与checkMST
-	public static List<List<Integer>> minCostMST(List<List<Integer>> roads) {
-		class Unionfind {
-			int[] arr;
-			Unionfind(int size) {
-				arr = new int[size];
-				Arrays.fill(arr, -1);
-			}
-			public int root(int i) {
-				while(arr[i] != -1) {
-					i = arr[i];
-				} 
-				return i;
-			}
-			public boolean find(int i, int j) {
-				return root(i) == root(j);
-			}
-			// assign i to j's subset
-			//		assign i's root's root as j's root
-			public void union(int i, int j) {
-				int rooti = root(i);
-				int rootj = root(j);
-				arr[rooti] = rootj;
-			}
-		}
-		if(roads == null || roads.size() == 0) {
-			return new ArrayList<>();
-		}
-		// map from all cityId -> unionfind ind & to avoid road duplication
-		Map<Integer, Integer> cityMap = new HashMap<>();
-		// poll min-cost road from minHeap each round
-		PriorityQueue<List<Integer>> minHeap = new PriorityQueue<List<Integer>>(roads.size(), (road1, road2) -> {
-			return road1.get(2) - road2.get(2);
-		});
-		// offer all the unique cities and roads into the cityMap and minHeap
-		int ind = 0;
-		for(List<Integer> road : roads) {
-			Integer city1 = road.get(0);
-			Integer city2 = road.get(1);
-			if(!cityMap.containsKey(city1)) {
-				cityMap.put(city1, ind++);
-			}
-			if(!cityMap.containsKey(city2)) {
-				cityMap.put(city2, ind++);
-			}
-			minHeap.offer(road);
-		}
-		int cityN = cityMap.size();
-
-		// create a new Unionfind class to expand an MST
-		Unionfind uf = new Unionfind(cityMap.size());
-		List<List<Integer>> mst = new ArrayList<>();
-
-		// check each road from the minHeap in the order of cost
-		// stop until we have checked all the roads(minheap empty) / we have built a MST(mst.size() == cityN - 1)
-		while(!minHeap.isEmpty() && mst.size() < cityN - 1) {
-			List<Integer> minRoad = minHeap.poll();
-			Integer city1 = minRoad.get(0), city2 = minRoad.get(1);
-			// city 1, 2 not connected, union the 1, 2 cities, add road into mst 
-			if(!uf.find(cityMap.get(city1), cityMap.get(city2))) {
-				uf.union(cityMap.get(city1), cityMap.get(city2));
-				mst.add(minRoad);
-			}
-		}
-		// cannot build a spanning tree
-		if(mst.size() < cityN - 1) {
-			return new ArrayList<>();
-		}
-		// sort the roads in MST by cost
-		Collections.sort(mst, (List<Integer> road1, List<Integer> road2) -> {
-			// 1. compare cost
-			int cmp = road1.get(2) - road2.get(2);
-			if(cmp == 0) {
-				// 2. compare city1
-				int cmp1 = road1.get(0) - road2.get(0);
-				if(cmp1 == 0) {
-					// 3. compare city2
-					return road1.get(1) - road2.get(1);
-				}
-				return cmp1;
-			}
-			return cmp;
-		});
-		return mst;
-	}
-
-	// 36. 零件组装 / merge subfiles (greedy 不一定连续)/ (dp 连续)merge consecutive stone piles min cost lc1000 https://leetcode.com/problems/minimum-cost-to-merge-stones/
-	// input: 	an array of costs of merge each pile of stone; 
-	//			K exact number of piles to merge in each round
-	// return: 	the minimum cost to merge together all piles of stones （和1000不一样，不用merge连续的piles）
-	//			return -1 if not possible to merge exact K piles each round
-	// maintain a total coast variable; use a pq minheap to store all the piles, 
-	//  	each round poll K least-cost piles to merge,
-	// 		offer the new merged pile with new cost back to the pq again
-	//  	until there is only one pile in the pq, return the total
-	public static int mergeStones(int[] stones, int K) {
-        // check if it is possible or not
-        if(stones == null || stones.length == 0) {
-            return -1;
-        }
-        int size = stones.length;
-        while(size > K) {
-            size = size - K + 1;
-        }
-        if(size != K) {
-            return -1;
-        }
-        // it is possible
-        // use a minHeap, each time poll K itmes; add cost; offer into again
-        // maintain a total cost
-        int cost = 0;
-        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
-        // offer all piles into the pq 
-        for(int i = 0; i < stones.length; i++) {
-            minHeap.offer(stones[i]);
-        }
-        while(!minHeap.isEmpty()) {
-            // only one pile left 
-            if(minHeap.size() == 1) {
-                break;
-            }
-            // each level, poll K items
-            int sum = 0;
-            for(int i = 0; i < K; i++) {
-                int num = minHeap.poll();
-                sum += num;
-            }
-            // offer back the merged stone
-            minHeap.offer(sum);
-            cost += sum;
-        }
-        return cost;
-    }
-	// ===================================================================
-
-
-
-
-	// 34. k closest points to origin (result no need in order) 
-	// https://leetcode.com/problems/k-closest-points-to-origin/
-	public static int[][] kClosest(int[][] points, int K) {
-        int kClosest = 0;
-        int[] dist = new int[points.length];
-        for(int i = 0; i < points.length; i++) {
-            dist[i] = getDist(points, i);
-        }
-        Arrays.sort(dist);
-        kClosest = dist[K - 1];
-        int[][] res = new int[K][2];
-        int ind = 0;
-        for(int i = 0; i < points.length; i++) {
-            if(getDist(points, i) <= kClosest) {
-                res[ind++] = points[i];
-            }
-        }
-        return res;
-    }
-    private static int getDist(int[][] points, int i) {
-        return points[i][0] * points[i][0] + points[i][1] * points[i][1];
-    }
-
-
-    // 34. k closest points to origin (pq : result in order)
-	public static List<List<Integer>> kClosest(List<List<Integer>> points, int k) {
-		if(points == null || points.size() == 0 || k == 0) {
-			return new ArrayList<>();
-		}
-		PriorityQueue<List<Integer>> maxHeap = new PriorityQueue<List<Integer>>(k, (p1, p2) -> {
-			return (int)(getDist(p2) - getDist(p1));
-		});
-		for(int i = 0; i < points.size(); i++) {
-			List<Integer> point = points.get(i);
-			if(i < k) {
-				maxHeap.offer(point);
-			} else {
-				if(getDist(point) <= getDist(maxHeap.peek())) {
-					maxHeap.poll();
-					maxHeap.offer(point);
-				}
-			}
-		}
-		List<List<Integer>> res = new ArrayList<>(maxHeap);
-		return res;
-	}
-	private static double getDist(List<Integer> point) {
-		return point.get(0) * point.get(0) + point.get(1) * point.get(1);
-	}
-	// ===================================================================
-
-
-
-
-	// 33. partition labels  https://leetcode.com/problems/partition-labels/submissions/
-	// input:	a String needed partition
-	//			partition the string into as many parts as possible 
-	//			so that each letter appears in at most one partition
-	// return:	list of size of paritions
-	// greedy--
-	// choose the smallest left-justified partition
-    // for example, the string 'abadd'
-    // for the first label 'a', the first partition should include 
-    //     its first occurrance and last occurrance
-    // So for each label, we extend the current partition,
-    //     until we find the right most last occurrance of the letter
-    //     we do the partition then.
-    public static List<Integer> partitionLabels(String S) {
-        List<Integer> res = new ArrayList<>();
-        if(S == null || S.length() == 0) {
-            return res;
-        }
-        int[] lastOcc = new int[26];
-        for(int i = 0; i < S.length(); i++) {
-            char c = S.charAt(i);
-            lastOcc[c - 'a'] = i;
-        }
-        int start = 0, end = 0;
-        for(int i = 0; i < S.length(); i++) {
-            char c = S.charAt(i);
-            end = Math.max(end, lastOcc[c - 'a']);
-            if(i == end) {
-                res.add(end - start + 1);
-                end++;
-                start = end;
-            }
-        }
-        return res;
-    }
-	// ===================================================================
-
-
-
-	// 32. log sort https://leetcode.com/problems/reorder-log-files/
-	// test: 
-	// 		String[] logs = {"a1 9 2 3 1", "g1 act car", "zo4 4 7", "ab1 off key dog", "a8 act zoo"};
-	// 		System.out.println(Arrays.toString(reorderLogFiles(logs)));
-	public static String[] reorderLogFiles(String[] logs) {
-        if(logs == null || logs.length == 0) {
-            return logs;
-        }
-        Arrays.sort(logs, (log1, log2) -> {
-            String[] split1 = log1.split(" ", 2);
-            String[] split2 = log2.split(" ", 2);
-            boolean isLetter1 = Character.isLetter(split1[1].charAt(0));
-            boolean isLetter2 = Character.isLetter(split2[1].charAt(0));
-            if(isLetter1 && isLetter2) {
-                int cmp = split1[1].compareTo(split2[1]);
-                if(cmp == 0) {
-                    return split1[0].compareTo(split2[0]);
-                }
-                return cmp;
-            }
-            return isLetter1 ? -1 : (isLetter2) ? 1 : 0;
-        });
-        return logs;
-    }
-	// ===================================================================
-
-
-
-	// 22. maze
-	// input: 	a maze 2d matrix
-	// 			start from top-left corner to "9"
-	// return: 	minimum steps
-	// test:
-	// 		int[][] maze1 = new int[][]{{1,0,0},{1,1,1},{1,9,1}};
-	// 		int[][] maze2 = new int[][]{{9,0,0},{1,1,1},{1,0,1}};
-	// 		System.out.println(minSteps(maze1));
-	// BFS
-	public static int minSteps(int[][] maze) {
-		if(maze == null || maze.length == 0 || maze[0].length == 0) {
-			return -1;
-		}
-		int nr = maze.length, nc = maze[0].length;
-		int[][] dirs = new int[][]{{0,1},{0,-1},{1,0},{-1,0}};
-		Set<List<Integer>> visited = new HashSet<>();
-		Queue<List<Integer>> level = new LinkedList<>();
-		List<Integer> origin = createPos(0, 0);
-		level.offer(origin);
-		visited.add(origin);
-		int step = -1;
-		while(!level.isEmpty()) {
-			int size = level.size();
-			step++;
-			for(int i = 0; i < size; i++) {
-				// poll one position from this level
-				List<Integer> pos = level.poll();
-				int row = pos.get(0), col = pos.get(1);
-				// once we reach destination, return step number
-				if(maze[row][col] == 9) {
-					return step;
-				}
-				// add all the neighbors into the level queue
-				for(int[] dir : dirs) {
-					int newRow = row + dir[0], newCol = col + dir[1];
-					if(newRow < nr && newRow >= 0 && newCol < nc && newCol >= 0 && maze[newRow][newCol] != 0) {
-						List<Integer> newList = createPos(newRow, newCol);
-						if(!visited.contains(newList)) {
-							level.offer(newList);
-							visited.add(newList);
-						}
-					}
-				}
-			}
-		}
-		return -1;
-	}
-	private static List<Integer> createPos(int i, int j) {
-		List<Integer> list = new ArrayList<>();
-		list.add(i);
-		list.add(j);
-		return list;
-	}
-	// ===================================================================
-
-
-
-
-	// 27. max min path 
-	// input: a 2d matrix
-	// find the minimum in each path from top-left corner to bottom-right corner
-	// and then find the maximum among these minimums.
-	// return: a maximum number
-	// test:
-	// 		int[][] matrix = new int[][]{{8,4,7},{6,5,9}};
-	// 		System.out.println(maxMinPath(matrix));		
-	public static int maxMinPath(int[][] matrix){
-		if(matrix == null || matrix.length == 0) {
-			return 0;
-		}
-		int[] max = new int[]{Integer.MIN_VALUE};
-		List<Integer> mins = new ArrayList<>();
-		mins.add(Integer.MAX_VALUE);
-		dfs(matrix, mins, max, 0, 0);
-		return max[0];
-	}
-	private static void dfs(int[][] matrix, List<Integer> mins, int[] max, int i, int j) {
-		int nr = matrix.length, nc = matrix[0].length;
-		// out of bound, update max, return
-		if(i >= nr || j >= nc) {
-			return;
-		}
-		// update mins with current matrix[i][j]
-		mins.add(Math.min(mins.get(mins.size() - 1), matrix[i][j]));
-		// once reach the right-bottom corner, update the max, but do not return
-		if(i == nr - 1 && j == nc - 1) {
-			max[0] = Math.max(max[0], mins.get(mins.size() - 1));
-		}
-		// go to next step
-		dfs(matrix, mins, max, i, j + 1);
-		dfs(matrix, mins, max, i + 1, j);
-		// backtrack
-		mins.remove(mins.size() - 1);
-	}
-	// ===================================================================
-
-
-
-
-
-	// 20. Binary Search Tree Min Sum Root to Leaf 
-	// input: the root node of the tree
-	// return: the maximum sum of a path from root to leaf
-	// test:
-	// 		TreeNode root = dserializeLevel("1,2,-3,null,null,4,5");
-	// 		System.out.println(minSumRootLeaf(root));
-	public static int minSumRootLeaf(TreeNode root){
-		if(root == null) {
-			return 0;
-		}
-		if(root.left != null && root.right == null) {
-			return root.val + minSumRootLeaf(root.left);
-		} else if(root.left == null && root.right != null) {
-			return root.val + minSumRootLeaf(root.right);
-		}
-		return root.val + Math.min(minSumRootLeaf(root.left), minSumRootLeaf(root.right));
-	}
-	// ===================================================================
 
 
 	// 19. Shortest Job First waiting time: 
@@ -1109,9 +668,8 @@ class amaOA{
 	// ===================================================================
 
 
-	// 12. Version 2. combination sum  
+	// Version 2. combination sum  
 	// 40. Combination Sum II https://leetcode.com/problems/combination-sum-ii/submissions/
-	// find all unique combinations in nums that sums to target.
 	// test: 
 	// 		int[] nums = {1,2,3,2,1,4,3,5,3};
 	// 		int target = 5;
@@ -1280,95 +838,10 @@ class amaOA{
 		}
 		return res;
 	}
-	// 9 ===================================================================
-
-	// 36. twoSumMaxWeight
-	// input: 	an array weights of all packages, a target weight
-	// return: 	an array of two indices that the weights add up target,
-	// 			if there are multiple answers, return the one with largest package weight
-	// test:
-	// 		int[] weights = {1,2,4,3,2,1,3,0};
-	// 		int target = 4;
-	// 		System.out.println(Arrays.toString(twoSumMaxWeight(weights, target)));
-	// return: [2, 7]
-	public static int[] twoSumMaxWeight(int[] weights, int target) {
-		// find all pairs of indices
-		// return the pair with largest item weight
-		if(weights == null || weights.length == 0) {
-			return new int[]{-1,-1};
-		}
-		Map<Integer, List<Integer>> map = new HashMap<>();
-		List<List<Integer>> res = new ArrayList<>();
-		for(int i = 0; i < weights.length; i++) {
-			int complement = target - weights[i];
-			// if contains complement
-			// find a pair
-			if(map.containsKey(complement)) {
-				List<Integer> comList = map.get(complement);
-				for(int j = 0; j < comList.size(); j++) {
-					int comInd = comList.get(j);
-					List<Integer> pair = new ArrayList<>();
-					pair.add(comInd);
-					pair.add(i);
-					res.add(pair);
-				}
-			}
-			// update item key's list
-			if(!map.containsKey(weights[i])) {
-				List<Integer> newList = new ArrayList<>();
-				map.put(weights[i], newList);
-			}
-			map.get(weights[i]).add(i);
-		}
-		// find the result pair with largest item weight
-		int[] result = new int[]{-1, -1};
-		int maxItemWeight = 0;
-		for(int i = 0; i < res.size(); i++) {
-			List<Integer> pair = res.get(i);
-			int item1Ind = pair.get(0), item2Ind = pair.get(1);
-			if(weights[item1Ind] > maxItemWeight || weights[item2Ind] > maxItemWeight) {
-				result[0] = item1Ind;
-				result[1] = item2Ind;
-			}
-		}
-		return result;
- 	}
-	// 36 ===================================================================
 
 
-	// 35. memory consumption / flight 无人机 其实不是two sum的解法，这个是两个list 但是题目目的上像
-	// input: 	two lists : jobs memory comsumptions / flight departure and return duration ;
-	//			int : a memory limit / time limit
-	// return:	max memory comsumption / flight duration that is not out of limit
-	// test:
-	// 		int[][] list1 = new int[][]{{1,100}, {2,200}, {3,500}};
-	// 		int[][] list2 = new int[][]{{1,200}, {2,300}, {3,900}};
-	// 		System.out.println(Arrays.toString(twoSumMax(list1, list2, 1000)));
-	// 直接暴力解
-	public static int[] twoSumMax(int[][] list1, int[][] list2, int limit) {
-		if(list1 == null || list2 == null || list1.length == 0 || list2.length == 0) {
-			return new int[]{-1,-1};
-		}
-		int maxSum = 0;
-		int id1 = -1, id2 = -1;
-		for(int i = 0; i < list1.length; i++) {
-			for(int j = 0; j < list2.length; j++) {
-				int sum = list1[i][1] + list2[j][1];
-				if(sum < limit && sum > maxSum) {
-					maxSum = sum;
-					id1 = list1[i][0];
-					id2 = list2[j][0];
-				}
-			}
-		}
-		return new int[]{id1, id2};
-	}
-	// 35 ===================================================================
-
-
-
-	// 8. check is tree t has same values as tree s's subtree
-	// https://leetcode.com/problems/subtree-of-another-tree/submissions/
+	// 8. subtree https://leetcode.com/problems/subtree-of-another-tree/submissions/
+	// check is tree t has same values as tree s's subtree
 	// traverse all the subtrees of s, check if there is a subtree same as t
 	// return -1 => not a subtree
 	// return  1 => is a subtree
@@ -1452,50 +925,6 @@ class amaOA{
 
 		return head;
 	}
-
-	// 7. reverse from m to n : https://leetcode.com/problems/reverse-linked-list-ii/
-	public static ListNode reverseBetween(ListNode head, int m, int n) {
-        if(head == null || m == n || n == 1) {
-            return head;
-        }
-        // split into three parts
-        // record the tail1; head2, tail2; head3
-        ListNode dummy = new ListNode(0);
-        dummy.next = head;
-        ListNode tail1 = dummy;
-        ListNode head2 = dummy; 
-        ListNode tail2 = dummy; 
-        ListNode head3 = dummy; 
-        ListNode cur = dummy;
-        int ind = 0;
-        while(cur != null) {
-            if(tail1 == dummy && ind + 1 == m) {
-                tail1 = cur;
-                head2 = cur.next;
-            }
-            if(tail2 == dummy && ind == n) {
-                tail2 = cur;
-                head3 = cur.next;
-            }
-            cur = cur.next;
-            ind++;
-        }
-        // reverse head2 - tail2
-        ListNode prev = null;
-        cur = head2;
-        tail2.next = null;
-        while(cur != null) {
-            ListNode next = cur.next;
-            cur.next = prev;
-            prev = cur;
-            cur = next;
-        }
-        // combine three parts together
-        tail1.next = prev;
-        head2.next = head3;
-        
-        return dummy.next;
-    }
 	// 7. =======================================
 
  
@@ -1561,7 +990,7 @@ class amaOA{
 				}
 			}
 		}
-		return (start == end) ? "WTF" : s.substring(start, end + 1);
+		return (start == end) ? "OOXX" : s.substring(start, end + 1);
 	}
 	// 5. =======================================
 
@@ -1570,7 +999,6 @@ class amaOA{
 	// o.w. return num of pairs
 	// test: 	String s = "(())()";
 	// 			System.out.println(validParen(s));
-	// also can use a variable to count "(" instead of maintaining a stack
 	public static int validParen(String s) {
 		if(s == null) {
 			return -1;

@@ -793,7 +793,7 @@ class Practice{
 	// 9. two sum existence
 	// unsorted，duplicated，exists or not. https://app.laicode.io/app/problem/180
 	// Set<Integer(val)>
-	public boolean existSum(int[] array, int target) {
+	public boolean twoSumExist(int[] array, int target) {
 		if(array == null || array.length == 0) {
 			return false;
 		}
@@ -812,7 +812,7 @@ class Practice{
 	// 9. two sum one pair
 	// unsorted，duplicated，one pair。 https://leetcode.com/problems/two-sum/
 	// Map<Integer(val), Integer(ind)> 
-	public int[] twoSum(int[] nums, int target) {
+	public int[] twoSumOnePair(int[] nums, int target) {
         if(nums == null || nums.length == 0) {
             return new int[0];
         }
@@ -830,7 +830,7 @@ class Practice{
     // 9. two sum all pairs
     // unsorted，duplicated，all pairs. https://app.laicode.io/app/problem/181
 	// Map<Integer(val), List<Integer>(inds)>
-	public List<List<Integer>> allPairs(int[] array, int target) {
+	public List<List<Integer>> twoSumAllPairs(int[] array, int target) {
 		List<List<Integer>> res = new ArrayList<>();
 		if(array == null || array.length == 0) {
 			return res;
@@ -854,7 +854,7 @@ class Practice{
 	// 9. two sum distinct val pairs
 	// unsorted，duplicated，all distinct value pairs. https://app.laicode.io/app/problem/182   
 	// Map<Integer(val), Integer(count)>
-	public List<List<Integer>> allPairs(int[] array, int target) {
+	public List<List<Integer>> twoSumDistValPairs(int[] array, int target) {
 		List<List<Integer>> res = new ArrayList<>();
 		if(array == null || array.length == 0) {
 			return res;
@@ -880,7 +880,7 @@ class Practice{
 	// 		int[] nums = {1,2,5,3,4,5,2,6,7};
 	// 		int target = 4;
 	// 		System.out.println(twoSumI(nums, target));
-	public static int twoSumI(int[] nums, int target) {
+	public static int twoSumCounter(int[] nums, int target) {
 		if(nums == null || nums.length == 0) {
 			return 0;
 		}

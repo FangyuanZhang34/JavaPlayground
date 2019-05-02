@@ -790,36 +790,92 @@ class Practice{
 
 
 
-	// 9. two sum 
-	// input: 	an unsorted array and a target number, no duplicates
-	// return: 	once find a match to target number, return index + 1
-	// 			o.w. {0, 0}
-	// test:
-	// 		int[] nums = {1,2,3,2,1,3};
-	// 		int target = 4;
-	// 		System.out.println(Arrays.toString(twoSum(nums, target)));
-	public static int[] twoSum(int[] nums, int target) {
-		if(nums == null || nums.length == 0) {
-			return new int[]{0, 0};
+	// 9. two sum existence
+	// unsorted，duplicated，exists or not. https://app.laicode.io/app/problem/180
+	// Set<Integer(val)>
+	public boolean existSum(int[] array, int target) {
+		if(array == null || array.length == 0) {
+			return false;
 		}
-		Map<Integer, Integer> map = new HashMap<>();
-		for(int i = 0; i < nums.length; i++) {
-			// find complement
-			int complement = target - nums[i];
-			if(map.containsKey(complement)) {
-				return new int[]{map.get(complement) + 1, i + 1};
+		Set<Integer> visited = new HashSet<>();
+		for(int i = 0; i < array.length; i++) {
+			int complement = target - array[i];
+			if(visited.contains(complement)) {
+				return true;
 			}
-			// update map
-			map.put(nums[i], i);
+			visited.add(array[i]);
 		}
-		return new int[]{0, 0}; 
+		return false;
 	}
-	// ===================================================================
 
 
-	// 9. two sum all pair I -- https://app.laicode.io/app/problem/181
-	// input: an unsorted array and a target number
-	// return: the count of all the matches for two sum
+	// 9. two sum one pair
+	// unsorted，duplicated，one pair。 https://leetcode.com/problems/two-sum/
+	// Map<Integer(val), Integer(ind)> 
+	public int[] twoSum(int[] nums, int target) {
+        if(nums == null || nums.length == 0) {
+            return new int[0];
+        }
+        Map<Integer, Integer> visited = new HashMap<>();
+        for(int i = 0; i < nums.length; i++) {
+            int complement = target - nums[i];
+            if(visited.containsKey(complement)) {
+                return new int[]{visited.get(complement), i};
+            }
+            visited.put(nums[i], i);
+        }
+        return new int[0];
+    }
+
+    // 9. two sum all pairs
+    // unsorted，duplicated，all pairs. https://app.laicode.io/app/problem/181
+	// Map<Integer(val), List<Integer>(inds)>
+	public List<List<Integer>> allPairs(int[] array, int target) {
+		List<List<Integer>> res = new ArrayList<>();
+		if(array == null || array.length == 0) {
+			return res;
+		}
+		Map<Integer, List<Integer>> visited = new HashMap<>();
+		for(int i = 0; i < array.length; i++) {
+			int complement = target - array[i];
+			if(visited.containsKey(complement)){
+			for(int comInd : visited.get(complement)) {
+				res.add(Arrays.asList(comInd, i));
+			}
+			}
+			if(!visited.containsKey(array[i])) {
+				visited.put(array[i], new ArrayList<>());
+			}
+			visited.get(array[i]).add(i);
+		}
+		return res;
+	}
+
+	// 9. two sum distinct val pairs
+	// unsorted，duplicated，all distinct value pairs. https://app.laicode.io/app/problem/182   
+	// Map<Integer(val), Integer(count)>
+	public List<List<Integer>> allPairs(int[] array, int target) {
+		List<List<Integer>> res = new ArrayList<>();
+		if(array == null || array.length == 0) {
+			return res;
+		}
+		Map<Integer, Integer> counter = new HashMap<>();
+		for(int i = 0; i < array.length; i++) {
+			int complement = target - array[i];
+			Integer comCount = counter.get(complement);
+			if(array[i] == complement && comCount != null && comCount == 1) {
+				res.add(Arrays.asList(array[i], array[i]));
+			} else if(array[i] != complement && comCount != null && 
+				!counter.containsKey(array[i])) {
+				res.add(Arrays.asList(complement, array[i]));
+			}
+			counter.put(array[i], counter.getOrDefault(array[i], 0) + 1);
+		}
+		return res;
+	}
+
+	// 9. two sum counter 
+	// unsorted，duplicated，count of pairs. https://app.laicode.io/app/problem/181
 	// test: 
 	// 		int[] nums = {1,2,5,3,4,5,2,6,7};
 	// 		int target = 4;
@@ -842,6 +898,7 @@ class Practice{
 		}
 		return res;
 	}
+	// 9. =======================================
 
 
 	// 8. subtree https://leetcode.com/problems/subtree-of-another-tree/submissions/

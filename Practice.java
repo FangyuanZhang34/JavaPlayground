@@ -212,11 +212,76 @@ class Practice{
 
 	// ===================================================================
 	public static void main(String[] args) {
-		
-
 	}
 	// ===================================================================
 
+
+	// 21. substrings with k distinct chars
+	// input: an input String; K distinct chars
+	// output: a Set of all substrings with k distinct chars
+	// System.out.println(kdistinctChar("rwrqertrteewerertretw", 4));
+	// [qert, retw, wrqe]
+	public static Set<String> kdistinctChar(String input, int K) {
+		Set<String> res = new HashSet<>();
+		if(input == null || input.length() < 1 || K <= 0) {
+			return res;
+		}
+		char[] arr = input.toCharArray();
+		HashSet<Character> set = new HashSet<>();
+		int l = 0, r = 0;
+		while(r < arr.length) {
+			if(set.contains(arr[r]) || (r - l + 1) > K) {
+				set.remove(arr[l++]);
+			} else {
+				set.add(arr[r++]);
+			}
+			if(r - l == K) {
+				String str = input.substring(l, r);
+				res.add(str);
+			}
+		}
+		return res;
+	}
+
+	// 20. Most common words(with the same max frequency)  https://leetcode.com/problems/most-common-word/
+	// input: String literatureText, List wordToExclude, 
+	// output: List res
+	// test: 
+	// 		String s = "ball time time beer time beer beer ball ball ball";
+	// 		List<String> banned = new ArrayList<>();
+	// 		banned.add("ball");
+	// 		System.out.println(retrieveMostFrequentlyUsedWords(s, banned));	
+	public static List<String> retrieveMostFrequentlyUsedWords(String literatureText, 
+		List<String> wordToExclude) {
+		List<String> res = new ArrayList<>();
+		literatureText += ".";
+		Set<String> excludeSet = new HashSet<>();
+		for(String word : wordToExclude) {
+			excludeSet.add(word);
+		} 
+		Map<String, Integer> freqMap = new HashMap<>();
+		int maxFreq = 0;
+		String word = "";
+		for(int i = 0; i < literatureText.length(); i++) {
+			char c = literatureText.charAt(i);
+			if(Character.isLetter(c)) {
+				word += c;
+			} else if(word.length() > 0) {
+				if(!excludeSet.contains(word)) {
+					freqMap.put(word, freqMap.getOrDefault(word, 0) + 1);
+					if(freqMap.get(word) > maxFreq) {
+						maxFreq = freqMap.get(word);
+						res.clear();
+						res.add(word);
+					} else if(freqMap.get(word) == maxFreq) {
+						res.add(word);
+					}					
+				}
+				word = "";
+			}
+		}
+		return res;
+	}
 
 
 	// 19. Shortest Job First waiting time: 
@@ -747,43 +812,41 @@ class Practice{
 
 
 
-
 	// 10. find k nearest point to a given origin 
-	// input: an array of Points; an origin point; an integer k
-	// return: an array of all k closest points, sorted by ascending distance
+	// input: ArrayList of Points; integer k
+	// return: ArrayList of all k closest points
 	// test:
-	// 		Point[] array = new Point[]{new Point(212,0),new Point(0,2),new Point(1,0),new Point(3,1)};
-	// 		Point ori = new Point(1,1);
-	// 		Point[] res = kNearestPoint(array, ori, 3);
-	// 		for(Point p : res) {
-	// 			System.out.println(p.toString());
-	// 		}
-	public static Point[] kNearestPoint(Point[] array, Point origin, int k) {
-		if(array == null || array.length == 0) {
-			return new Point[0];
+	//		List<List<Integer>> locations = new ArrayList<>();
+	// 		locations.add(Arrays.asList(new Integer[]{1,2}));
+	// 		locations.add(Arrays.asList(new Integer[]{3,4}));
+	// 		locations.add(Arrays.asList(new Integer[]{1,-1}));
+	// 		System.out.println(closestLocations(3, locations, 2));
+	public static List<List<Integer>> closestLocations(int totalCrates, List<List<Integer>> allLocations,
+												int truckCapacity) {
+		if(allLocations == null || allLocations.size() == 0 || truckCapacity == 0) {
+			return new ArrayList<List<Integer>>();
 		}
 		// use a max heap to maintain k closest points inside the heap
-		PriorityQueue<Point> maxHeap = new PriorityQueue<>(k, (point1, point2) -> {
-			return (int)(dist(point2, origin) - dist(point1, origin));
+		PriorityQueue<List<Integer>> maxHeap = new PriorityQueue<List<Integer>>(truckCapacity, (loc1, loc2) -> {
+			return (int)(dist(loc2) - dist(loc1));
 		});
-		for(int i = 0; i < array.length; i++) {
-			if(i < k) {
-				maxHeap.offer(array[i]);
-			} else {
-				if(dist(maxHeap.peek(), origin) > dist(array[i], origin)){
-					maxHeap.poll();
-					maxHeap.offer(array[i]);
-				}
+		for(int i = 0; i < allLocations.size(); i++) {
+			List<Integer> loc = allLocations.get(i);
+			if(i < truckCapacity) {
+				maxHeap.offer(loc);
+			} else if(dist(maxHeap.peek()) > dist(loc)){
+				maxHeap.poll();
+				maxHeap.offer(loc);
 			}
 		}
-		Point[] res = new Point[k];
-		for(int i = k - 1; i >= 0; i--) {
-			res[i] = maxHeap.poll();
+		List<List<Integer>> res = new ArrayList<>();
+		while(!maxHeap.isEmpty()) {
+			res.add(maxHeap.poll());
 		}
 		return res;
 	}
-	private static double dist(Point p1, Point p2) {
-		return (p1.x-p2.x) * (p1.x-p2.x) + (p1.y-p2.y) * (double)(p1.y-p2.y);
+	private static double dist(List<Integer> loc) {
+		return Math.pow(loc.get(0), 2) + Math.pow(loc.get(1), 2);
 	}
 	// ===================================================================
 
@@ -1017,7 +1080,7 @@ class Practice{
 	// 6. =======================================
 
 
-	// 5. longestParlin1 
+	// 5. longestParlin1   https://leetcode.com/problems/longest-palindromic-substring/
 	// return the longest palindrome substring
 	// test:	String s = "abcdceed";
 	// 			System.out.println(longestParlin1(s));

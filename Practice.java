@@ -212,6 +212,7 @@ class Practice{
 
 	// ===================================================================
 	public static void main(String[] args) {
+		System.out.println(kdistinctChar2("adagafsrvvrsfdfs", 4));
 	}
 	// ===================================================================
 
@@ -238,6 +239,32 @@ class Practice{
 			if(r - l == K) {
 				String str = input.substring(l, r);
 				res.add(str);
+			}
+		}
+		return res;
+	}
+
+	public static Set<String> kdistinctChar2(String input, int K) {
+		Set<String> res = new HashSet<>();
+		int n = input.length();
+		if(n == 0 || n < K) {
+			return res;
+		}
+		Map<Character, Integer> map = new HashMap<>();
+		int i,j = 0;
+		for(i = 0; i < n; i++) {
+			while(j < n && j - i < K) {
+				char c = input.charAt(j);
+				map.put(c, map.getOrDefault(c,0)+1);
+				j++;
+			}
+			if(map.size() == K) {
+				res.add(input.substring(i,j));
+			}
+			char c = input.charAt(i);
+			map.put(c,map.get(c)-1);
+			if(map.get(c) == 0) {
+				map.remove(c);
 			}
 		}
 		return res;

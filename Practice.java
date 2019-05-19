@@ -212,7 +212,7 @@ class Practice{
 
 	// ===================================================================
 	public static void main(String[] args) {
-		System.out.println(kdistinctChar2("adagafsrvvrsfdfs", 4));
+		System.out.println(kDistinct2("rwrqertrteewerertretw", 4));
 	}
 	// ===================================================================
 
@@ -224,17 +224,21 @@ class Practice{
 	// [qert, retw, wrqe]
 	public static Set<String> kdistinctChar(String input, int K) {
 		Set<String> res = new HashSet<>();
-		if(input == null || input.length() < 1 || K <= 0) {
+		if(input == null || input.length() == 0 || K > input.length()) {
 			return res;
 		}
-		char[] arr = input.toCharArray();
+		int n = input.length();
 		HashSet<Character> set = new HashSet<>();
 		int l = 0, r = 0;
-		while(r < arr.length) {
-			if(set.contains(arr[r]) || (r - l + 1) > K) {
-				set.remove(arr[l++]);
+		while(r < n) {
+			char cl = input.charAt(l);
+			char cr = input.charAt(r);
+			if(!set.contains(cr) && (r - l) < K) {
+				set.add(cr);
+				r++;
 			} else {
-				set.add(arr[r++]);
+				set.remove(cl);
+				l++;
 			}
 			if(r - l == K) {
 				String str = input.substring(l, r);
@@ -246,23 +250,85 @@ class Practice{
 
 	public static Set<String> kdistinctChar2(String input, int K) {
 		Set<String> res = new HashSet<>();
-		int n = input.length();
-		if(n == 0 || n < K) {
+		if(input == null || input.length() == 0 || K > input.length()) {
 			return res;
 		}
+		int n = input.length();
 		Map<Character, Integer> map = new HashMap<>();
-		int i,j = 0;
-		for(i = 0; i < n; i++) {
-			while(j < n && j - i < K) {
-				char c = input.charAt(j);
+		int end = 0;
+		for(int start = 0; start < n; start++) {
+			while(end < n && end - start < K) {
+				char c = input.charAt(end);
 				map.put(c, map.getOrDefault(c,0)+1);
-				j++;
+				end++;
 			}
 			if(map.size() == K) {
-				res.add(input.substring(i,j));
+				res.add(input.substring(start, end));
 			}
-			char c = input.charAt(i);
-			map.put(c,map.get(c)-1);
+			char c = input.charAt(start);
+			map.put(c,map.get(c) - 1);
+			if(map.get(c) == 0) {
+				map.remove(c);
+			}
+		}
+		return res;
+	}
+
+	// practice
+	public static Set<String> kDistinct(String input, int K) {
+		Set<String> res = new HashSet<>();
+		if(input == null || input.length() == 0 || K > input.length()) {
+			return res;
+		}
+		int n = input.length();
+		Map<Character, Integer> map = new HashMap<>();
+		int end = 0;
+		for(int start = 0; start < n; start++) {
+			while(end < n && end - start < K) {
+				char c = input.charAt(end);
+				map.put(c, map.getOrDefault(c,0) + 1);
+				end++;
+			}
+			if(end - start == K && map.size() == K) {
+				res.add(input.substring(start, end));
+			}
+			char c = input.charAt(start);
+			map.put(c, map.get(c) - 1);
+			if(map.get(c) == 0) {
+				map.remove(c);
+			}
+		}
+		return res;
+	}
+
+	// practice2
+	public static Set<String> kDistinct2(String input, int K) {
+		Set<String> res = new HashSet<>();
+		if(input == null || input.length() == 0 || K > input.length()) {
+			return res;
+		}
+		int n = input.length();
+		Map<Character, Integer> map = new HashMap<>();
+		int end = 0;
+		for(int start = 0; start < n; start++) {
+			while(end < n && end - start < K) {
+				char c = input.charAt(end);
+				map.put(c, map.getOrDefault(c,0) + 1);
+				end++;
+			}
+
+			int i = start;
+			for(;i < end; i++) {
+				if(map.get(input.charAt(i)) != 1) {
+					break;
+				}
+			}
+			if((end - start == K) && i == end) {
+				res.add(input.substring(start, end));
+			}
+
+			char c = input.charAt(start);
+			map.put(c, map.get(c) - 1);
 			if(map.get(c) == 0) {
 				map.remove(c);
 			}
@@ -278,7 +344,7 @@ class Practice{
 	// 		List<String> banned = new ArrayList<>();
 	// 		banned.add("ball");
 	// 		System.out.println(retrieveMostFrequentlyUsedWords(s, banned));	
-	public static List<String> retrieveMostFrequentlyUsedWords(String literatureText, 
+	public static List<String> retrieveMostFrequentlyUsedWords (String literatureText, 
 		List<String> wordToExclude) {
 		List<String> res = new ArrayList<>();
 		literatureText += ".";
@@ -305,6 +371,43 @@ class Practice{
 					}					
 				}
 				word = "";
+			}
+		}
+		return res;
+	}
+
+	// practice 
+	private static List<String> re(String literatureText, List<String> wordToExclude) {
+		List<String> res = new ArrayList<>();
+		if(literatureText == null || literatureText.length() == 0) {
+			return res;
+		}
+		Set<String> excluded = new HashSet<>();
+		for(String s : wordToExclude) {
+			excluded.add(s.toLowerCase());
+		}
+		Map<String, Integer> freqMap = new HashMap<>();
+		int maxFreq = 0; // global maximum
+		literatureText += ".";
+		literatureText = literatureText.toLowerCase();
+		StringBuilder word = new StringBuilder();
+		for(char c : literatureText.toCharArray()) {
+			if(Character.isLetter(c)) {
+				word.append(c);
+			} else if(word.length() > 0){
+				String newWord = word.toString();
+				if(!excluded.contains(newWord)) {
+					freqMap.put(newWord, freqMap.getOrDefault(newWord, 0) + 1);
+					int freq = freqMap.get(newWord);
+					if(freq == maxFreq) {
+						res.add(newWord);
+					} else if(freq > maxFreq) {
+						res.clear();
+						maxFreq = freq;
+						res.add(newWord);
+					}
+				}
+				word = new StringBuilder();
 			}
 		}
 		return res;

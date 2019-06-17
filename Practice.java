@@ -212,10 +212,40 @@ class Practice{
 
 	// ===================================================================
 	public static void main(String[] args) {
-		System.out.println(kDistinct2("rwrqertrteewerertretw", 4));
+		System.out.println(permutationsI("1234"));
 	}
 	// ===================================================================
 
+
+	// 22. PermutationsI
+	public static List<String> permutationsI(String set) {
+		List<String> result = new ArrayList<>();
+		if(set == null) {
+			return result;
+		}
+		char[] array = set.toCharArray();
+		permutationsI(result, array, 0);
+		return result;
+	}
+	private static void permutationsI(List<String> result, char[] array, int ind) {
+		//base case:
+		if(ind == array.length) {
+			result.add(new String(array));
+			return;
+		}
+		//recursive rule:
+		for(int i = ind; i < array.length; i++) {
+			permuSwap(array, ind, i);
+
+			permutationsI(result, array, ind + 1);
+			permuSwap(array, ind, i);
+		}
+	}
+	private static void permuSwap(char[] array, int i, int j) {
+		char temp = array[i];
+		array[i] = array[j];
+		array[j] = temp;
+	}
 
 	// 21. substrings with k distinct chars
 	// input: an input String; K distinct chars
@@ -282,11 +312,10 @@ class Practice{
 		}
 		int n = input.length();
 		Map<Character, Integer> map = new HashMap<>();
-		int end = 0;
-		for(int start = 0; start < n; start++) {
+		for(int start = 0, end = 0; start < n; start++) {
 			while(end < n && end - start < K) {
 				char c = input.charAt(end);
-				map.put(c, map.getOrDefault(c,0) + 1);
+				map.put(c, map.getOrDefault(c, 0) + 1);
 				end++;
 			}
 			if(end - start == K && map.size() == K) {
@@ -296,7 +325,7 @@ class Practice{
 			map.put(c, map.get(c) - 1);
 			if(map.get(c) == 0) {
 				map.remove(c);
-			}
+			} 
 		}
 		return res;
 	}
@@ -382,33 +411,31 @@ class Practice{
 		if(literatureText == null || literatureText.length() == 0) {
 			return res;
 		}
+		literatureText += ".";
+		literatureText = literatureText.toLowerCase();
 		Set<String> excluded = new HashSet<>();
 		for(String s : wordToExclude) {
 			excluded.add(s.toLowerCase());
 		}
-		Map<String, Integer> freqMap = new HashMap<>();
-		int maxFreq = 0; // global maximum
-		literatureText += ".";
-		literatureText = literatureText.toLowerCase();
+		Map<String, Integer> map = new HashMap<>();
+		int maxFreq = 0;
 		StringBuilder word = new StringBuilder();
 		for(char c : literatureText.toCharArray()) {
 			if(Character.isLetter(c)) {
 				word.append(c);
-			} else if(word.length() > 0){
-				String newWord = word.toString();
-				if(!excluded.contains(newWord)) {
-					freqMap.put(newWord, freqMap.getOrDefault(newWord, 0) + 1);
-					int freq = freqMap.get(newWord);
-					if(freq == maxFreq) {
-						res.add(newWord);
-					} else if(freq > maxFreq) {
-						res.clear();
-						maxFreq = freq;
-						res.add(newWord);
-					}
+			} else if(word.length() > 0) {
+				String finalWord = word.toString();
+				map.put(finalWord, map.getOrDefault(finalWord, 0) + 1);
+				int freq = map.get(finalWord);
+				if(freq == maxFreq) {
+					res.add(finalWord);
+				} else if(freq > maxFreq) {
+					res.clear();
+					maxFreq = freq;
+					res.add(finalWord);
 				}
 				word = new StringBuilder();
-			}
+			} 
 		}
 		return res;
 	}
